@@ -1,6 +1,9 @@
 # Environment variables
 .env
 
+# Windsurf
+.windsurfrules
+
 # Python
 __pycache__/
 *.py[cod]

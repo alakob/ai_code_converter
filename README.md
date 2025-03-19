@@ -1,4 +1,4 @@
-# AI Code Converter
+# CodeXchange AI
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -43,8 +43,8 @@ AI Code Converter is a Python application that leverages various AI models to tr
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd ai_converter_v2
+git clone git@github.com:alakob/ai_code_converter.git
+cd ai_code_converter
 
 # Configure environment
 cp .env.example .env
