@@ -8,7 +8,7 @@ GEMINI_MODEL = "gemini-1.5-flash"
 GROQ_MODEL = "llama3-70b-8192"
 
 # Supported languages and models
-SUPPORTED_LANGUAGES = ["Python", "Julia", "JavaScript", "Go", "Java", "C++"]
+SUPPORTED_LANGUAGES = ["Python", "Julia", "JavaScript", "Go", "Java", "C++", "Ruby", "Swift", "Rust", "C#", "TypeScript", "R", "Perl", "Lua", "PHP", "Kotlin", "SQL"]
 MODELS = ["GPT", "Claude", "Gemini", "DeepSeek", "GROQ"]
 
 # Language mapping for syntax highlighting
@@ -18,7 +18,18 @@ LANGUAGE_MAPPING = {
     "Java": "python",
     "C++": "cpp",
     "Julia": "python",
-    "Go": "c"
+    "Go": "c",
+    "Ruby": "python",
+    "Swift": "python",
+    "Rust": "python",
+    "C#": "python",
+    "TypeScript": "typescript",
+    "R": "r",
+    "Perl": "python",
+    "Lua": "python",
+    "PHP": "python",
+    "Kotlin": "python",
+    "SQL": "sql"
 }
 
 # CSS styling
@@ -62,7 +73,7 @@ CUSTOM_CSS = """
     margin: 10px 0;
     border: 2px solid #ff4444 !important;
     border-radius: 4px !important;
-    background-color: #2b2b2b !important;
+    background-color: #ffffff !important;
 }
 
 .error-message {

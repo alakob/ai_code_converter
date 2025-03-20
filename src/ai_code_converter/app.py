@@ -97,6 +97,19 @@ class CodeConverterApp:
         for lang in LANGUAGE_MAPPING.values():
             if lang not in gr.Code.languages:
                 gr.Code.languages.append(lang)
+                
+        # Add additional languages to Gradio's supported languages if needed
+        additional_languages = {
+            "Perl": "perl",
+            "Lua": "lua",
+            "PHP": "php",
+            "Kotlin": "kotlin",
+            "SQL": "sql"
+        }
+        
+        for lang, lang_code in additional_languages.items():
+            if lang_code not in gr.Code.languages:
+                gr.Code.languages.append(lang_code)
 
     def _create_gradio_interface(self) -> gr.Blocks:
         """Create and configure the Gradio interface."""
@@ -106,10 +119,10 @@ class CodeConverterApp:
             error_state = gr.State("")
             
             # Header
-            gr.HTML('<div class="header-text">AI Code Converter</div>')
+            gr.HTML('<div class="header-text">AI CodeXchange</div>')
             
             # Error Message Accordion
-            with gr.Accordion("⚠️ Validation Messages", open=False, elem_classes=["error-accordion"]) as error_accordion:
+            with gr.Accordion("Validation Messages", open=False, elem_classes=["error-accordion"]) as error_accordion:
                 error_message = gr.Markdown(
                     value="",
                     elem_classes=["error-message"]

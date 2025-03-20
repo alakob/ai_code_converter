@@ -4,6 +4,8 @@
 # Windsurf
 .windsurfrules
 
+action_plan.md
+
 # Python
 __pycache__/
 *.py[cod]
