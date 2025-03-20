@@ -2,6 +2,8 @@
 
 This guide provides instructions for extending the CodeXchange AI application with new languages and AI models.
 
+Before diving into development, it's recommended to review the [Architecture Diagram](./architecture_diagram.md) to understand the component relationships and application flow.
+
 ## Adding New Programming Languages
 
 1. Update Language Configuration (`config.py`):

@@ -2,6 +2,8 @@
 
 This document provides an overview of the CodeXchange AI project structure and architecture.
 
+For a visual representation of the application architecture and component relationships, please refer to the [Architecture Diagram](./architecture_diagram.md).
+
 ## Directory Structure
 
 ```

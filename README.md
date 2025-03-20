@@ -80,6 +80,7 @@ For detailed documentation, please refer to the [docs](./docs) directory:
 - [Development Guide](./docs/development.md) - Guide for developers extending the application
 - [Contributing Guidelines](./docs/contributing.md) - How to contribute to the project
 - [Project Structure](./docs/project_structure.md) - Overview of the codebase architecture
+- [Architecture Diagram](./docs/architecture_diagram.md) - Visual representation of the application architecture
 
 ## License
 
