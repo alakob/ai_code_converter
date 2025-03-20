@@ -56,6 +56,33 @@ cp .env.example .env
 python run.py
 ```
 
+### Using Make Commands
+
+The project includes a Makefile with useful commands to streamline development:
+
+```bash
+# Install dependencies
+make install
+
+# Run the application
+make run
+
+# Run with development settings (hot-reloading)
+make dev
+
+# Build Docker container
+make docker-build
+
+# Run Docker container
+make docker-run
+
+# Run tests
+make test
+
+# Clean Python cache and build artifacts
+make clean
+```
+
 ## Basic Usage
 
 1. Select source and target programming languages
