@@ -36,7 +36,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true  # Always push the image
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -45,9 +45,9 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: "${{ secrets.DOCKERHUB_USERNAME }}/codexchangeai:${{ github.sha }}"
+          image-ref: "${{ secrets.DOCKERHUB_USERNAME }}/codexchangeai:${{ steps.meta.outputs.version }}"
           format: 'table'
-          exit-code: '0'
+          exit-code: '1'  # Fail the workflow on critical/high vulnerabilities
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
