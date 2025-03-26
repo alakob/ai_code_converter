@@ -13,10 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Phase 2: Adding ARM64 support
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
-          platforms: 'arm64,amd64'
+          platforms: 'arm64'
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -44,13 +45,13 @@ jobs:
         with:
           context: .
           push: true  # Always push the image
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Create local reference for Trivy scanning (multi-arch images need special handling)
+      # Create local reference for multi-arch image scanning
       - name: Create reference image for scanning
         run: |
           docker pull --platform=linux/amd64 ${{ secrets.DOCKERHUB_USERNAME }}/codexchangeai:${{ github.ref_name }}
