@@ -21,8 +21,6 @@ AI Code Converter is a Python application that leverages various AI models to tr
 
 ## Quick Start
 
-### Using Docker (Recommended)
-
 ```bash
 # Clone the repository
 git clone git@github.com:alakob/ai_code_converter.git
@@ -32,9 +30,49 @@ cd ai_code_converter
 cp .env.example .env
 # Edit .env with your API keys
 
-# Build and run
-docker compose up -d --build
 ```
+
+### Using the Docker Wrapper Script (Recommended)
+
+For a more convenient way to run the application with Docker, you can use the provided wrapper script:
+
+```bash
+# Make the script executable
+chmod +x run-docker.sh
+
+# Run the application
+./run-docker.sh            # Build and run normally
+./run-docker.sh -d         # Run in detached mode
+./run-docker.sh -p 8080    # Run on port 8080
+./run-docker.sh -s         # Stop the container
+./run-docker.sh -h         # Show help message
+
+```
+
+The wrapper script provides several options for customizing the Docker deployment:
+
+```bash
+Usage: ./run-docker.sh [OPTIONS]
+
+Options:
+  -b, --build        Build the Docker image without running the container
+  -d, --detach       Run container in detached mode (background)
+  -e, --env FILE     Specify an environment file (default: .env)
+  -p, --port PORT    Specify the port to expose (default: 7860)
+  -l, --logs         Follow the container logs after starting
+  -s, --stop         Stop the running container
+  -r, --restart      Restart the container
+  -D, --down         Stop and remove the container
+  -k, --keys         Check for API keys and show setup instructions if missing
+  -h, --help         Display this help message
+  -v, --version      Display script version
+```
+
+Examples:
+- Run on a different port: `./run-docker.sh -p 8080`
+- Run in background: `./run-docker.sh -d`
+- Stop the application: `./run-docker.sh -s`
+- View logs: `./run-docker.sh -l`
 
 The application will be available at `http://localhost:7860`
 
@@ -75,6 +113,9 @@ make docker-build
 
 # Run Docker container
 make docker-run
+
+# Or use the Docker wrapper script for more options
+./run-docker.sh
 
 # Run tests
 make test

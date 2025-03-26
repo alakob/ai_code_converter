@@ -15,6 +15,15 @@ from dotenv import load_dotenv
 from jinja2 import Template
 from openai import OpenAI
 
+# Import configuration
+from src.ai_code_converter.config import (
+    SUPPORTED_LANGUAGES,
+    MODELS,
+    LANGUAGE_MAPPING,
+    PREDEFINED_SNIPPETS,
+    SNIPPET_LANGUAGE_MAP,
+    LANGUAGE_FILE_EXTENSIONS
+)
 from src.ai_code_converter.models.ai_streaming import AIModelStreamer
 from src.ai_code_converter.core.code_execution import CodeExecutor
 from src.ai_code_converter.core.language_detection import LanguageDetector
@@ -49,6 +58,24 @@ class CodeConverterApp:
         except Exception as e:
             logger.error("Failed to initialize CodeConverterApp", exc_info=True)
             raise
+            
+    def _load_snippet(self, snippet_name: str) -> Tuple[str, str]:
+        """Load a predefined code snippet and get its language
+        
+        Args:
+            snippet_name: Name of the snippet to load
+            
+        Returns:
+            A tuple containing (code_content, language)
+        """
+        logger.info(f"Loading predefined snippet: {snippet_name}")
+        # Use the imported configuration from config.py
+        from src.ai_code_converter.config import PREDEFINED_SNIPPETS, SNIPPET_LANGUAGE_MAP
+        code = PREDEFINED_SNIPPETS.get(snippet_name, "# No snippet selected")
+        language = SNIPPET_LANGUAGE_MAP.get(snippet_name, "Python")
+        
+        logger.info(f"Snippet loaded with language: {language}")
+        return code, language
 
     def _setup_environment(self) -> None:
         """Set up environment variables and logging."""
@@ -175,9 +202,23 @@ class CodeConverterApp:
                     label="Temperature"
                 )
             
-            # File Operations
-            with gr.Accordion("Upload", open=False, elem_classes="accordion"):
-                file_upload = gr.File(label="Upload File")
+            # File Operations and Code Snippets
+            with gr.Accordion("Upload & Code Snippets", open=False, elem_classes="accordion"):
+                with gr.Row():
+                    file_upload = gr.File(label="Upload File")
+                
+                with gr.Row():
+                    snippet_dropdown = gr.Dropdown(
+                        choices=list(PREDEFINED_SNIPPETS.keys()),
+                        value=None,
+                        label="Example Code Snippets",
+                        info="Select a code snippet to load into the editor"
+                    )
+                    load_snippet_btn = gr.Button(
+                        "Load Snippet",
+                        variant="secondary",
+                        size="sm"
+                    )
             
             # Action Buttons
             with gr.Row():
@@ -239,7 +280,7 @@ class CodeConverterApp:
                 model, temperature,
                 validation_state, error_state,
                 error_message, error_accordion,
-                file_upload,
+                file_upload, snippet_dropdown, load_snippet_btn,
                 convert_btn, clear_btn,
                 run_source_btn, run_converted_btn,
                 source_result, converted_result,
@@ -282,6 +323,8 @@ class CodeConverterApp:
         error_message: gr.Markdown,
         error_accordion: gr.Accordion,
         file_upload: gr.File,
+        snippet_dropdown: gr.Dropdown,
+        load_snippet_btn: gr.Button,
         convert_btn: gr.Button,
         clear_btn: gr.Button,
         run_source_btn: gr.Button,
@@ -371,6 +414,20 @@ class CodeConverterApp:
             inputs=[converted_code, target_lang],
             outputs=converted_result  # Only output string
         )
+        
+        # Snippet selection handler
+        load_snippet_btn.click(
+            fn=self._handle_snippet_selection,
+            inputs=[snippet_dropdown, error_state],
+            outputs=[
+                source_code,
+                source_lang,
+                error_message, 
+                error_state, 
+                error_accordion, 
+                validation_state
+            ]
+        )
 
         # Download handlers
         source_code.change(
@@ -422,6 +479,62 @@ class CodeConverterApp:
         
         logger.info(f"Code verified successfully for {new_lang}")
         return code, "", "", gr.update(open=False), True
+        
+    def _handle_snippet_selection(
+        self, snippet_name: str, current_error: str
+    ) -> Tuple[str, str, str, str, gr.update, bool]:
+        """Handle snippet selection with language synchronization.
+        
+        Args:
+            snippet_name: The name of the selected snippet
+            current_error: Any existing error message
+            
+        Returns:
+            Tuple containing updated values for source code, source language,
+            error message, error state, error accordion visibility update, and validation state
+        """
+        logger.info(f"Handling snippet selection: {snippet_name}")
+        
+        # Default values
+        source_code = "# No snippet selected"
+        source_lang = "Python"
+        error_message = ""
+        error_state = ""
+        error_accordion_visible = gr.update(open=False)
+        is_valid = True
+        
+        try:
+            # Import the configurations from config.py
+            from src.ai_code_converter.config import PREDEFINED_SNIPPETS
+            
+            # Early return if no snippet selected
+            if not snippet_name or snippet_name not in PREDEFINED_SNIPPETS:
+                logger.warning(f"Invalid snippet name or no snippet selected: {snippet_name}")
+                return source_code, source_lang, error_message, error_state, error_accordion_visible, is_valid
+            
+            # Get code and language from the snippet
+            source_code, source_lang = self._load_snippet(snippet_name)
+            logger.info(f"Loaded snippet: {snippet_name} with language: {source_lang}")
+            
+            # Validate that the code matches the language
+            if source_code and source_code.strip():
+                is_valid, error_details = self.language_detector.validate_language(source_code, source_lang)
+                if not is_valid:
+                    error_message = f"⚠️ Warning: The code doesn't appear to match {source_lang} syntax perfectly. {error_details}"
+                    error_state = error_message
+                    error_accordion_visible = gr.update(open=True)
+                    logger.warning(f"Snippet validation failed: {error_details}")
+        except Exception as e:
+            logger.error(f"Error handling snippet selection: {e}", exc_info=True)
+            source_code = "# Error loading snippet"
+            error_message = f"Error loading snippet: {str(e)}"
+            error_state = error_message
+            error_accordion_visible = gr.update(open=True)
+            is_valid = False
+            
+        # Return all the updated values in the expected order
+        logger.info(f"Returning snippet: Valid={is_valid}, Lang={source_lang}, Error={bool(error_message)}")
+        return source_code, source_lang, error_message, error_state, error_accordion_visible, is_valid
 
     def _update_code_language(self, lang: str) -> gr.update:
         """Update code component language based on selection."""
