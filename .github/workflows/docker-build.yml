@@ -21,16 +21,15 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          # Use a default image name for PRs without secrets
-          images: ${{ secrets.DOCKERHUB_USERNAME != '' && format('{0}/codexchangeai', secrets.DOCKERHUB_USERNAME) || 'codexchangeai' }}
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/codexchangeai
           tags: |
             type=ref,event=branch
             type=sha,format=short
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
-      # Only login for pushes to branches, not for PRs, and only when secrets exist
+      # Only login for pushes to branches, not for PRs
       - name: Login to Docker Hub
-        if: github.event_name != 'pull_request' && secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != ''
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -40,8 +39,8 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          # Only push when not a PR and secrets exist
-          push: ${{ github.event_name != 'pull_request' && secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
+          # Only push for branch events, not PRs
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -52,8 +51,7 @@ jobs:
         id: trivy
         uses: aquasecurity/trivy-action@master
         with:
-          # Use local image for scanning in PR context or when secrets aren't available
-          image-ref: ${{ secrets.DOCKERHUB_USERNAME != '' && format('{0}/codexchangeai:{1}', secrets.DOCKERHUB_USERNAME, github.ref_name) || 'codexchangeai:local' }}
+          image-ref: "${{ secrets.DOCKERHUB_USERNAME }}/codexchangeai:${{ github.ref_name }}"
           format: 'table'
           exit-code: '0'  # Changed to not fail the build, but we'll handle results
           ignore-unfixed: true
