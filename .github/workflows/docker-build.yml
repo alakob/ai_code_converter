@@ -13,16 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Phase 2: Adding ARM64 support
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: 'arm64'
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-        with:
-          platforms: linux/amd64,linux/arm64
 
       - name: Extract metadata
         id: meta
@@ -45,22 +37,15 @@ jobs:
         with:
           context: .
           push: true  # Always push the image
-          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Create local reference for multi-arch image scanning
-      - name: Create reference image for scanning
-        run: |
-          docker pull --platform=linux/amd64 ${{ secrets.DOCKERHUB_USERNAME }}/codexchangeai:${{ github.ref_name }}
-          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/codexchangeai:${{ github.ref_name }} codexchangeai:scan
-
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: "codexchangeai:scan"
+          image-ref: "${{ secrets.DOCKERHUB_USERNAME }}/codexchangeai:${{ steps.meta.outputs.version }}"
           format: 'table'
           exit-code: '1'  # Fail the workflow on critical/high vulnerabilities
           ignore-unfixed: true
