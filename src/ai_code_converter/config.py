@@ -1,4 +1,4 @@
-"""Configuration settings for the AI Code Converter application."""
+"""Configuration settings for the CodeXchange AI application."""
 
 # Model configurations
 OPENAI_MODEL = "gpt-4o-mini"
@@ -25,10 +25,10 @@ LANGUAGE_MAPPING = {
     "C#": "python",
     "TypeScript": "typescript",
     "R": "r",
-    "Perl": "perl",
-    "Lua": "lua",
-    "PHP": "php",
-    "Kotlin": "kotlin",
+    "Perl": "python",
+    "Lua": "python",
+    "PHP": "python",
+    "Kotlin": "python",
     "SQL": "sql"
 }
 
@@ -53,8 +53,102 @@ LANGUAGE_FILE_EXTENSIONS = {
     "SQL": ".sql"
 }
 
+# Documentation styles available for each language
+DOCUMENT_STYLES = {
+    "Python": [
+        {"value": "standard", "label": "Standard (PEP 257)"},
+        {"value": "google", "label": "Google Style"},
+        {"value": "numpy", "label": "NumPy Style"}
+    ],
+    "Julia": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "docsystem", "label": "Documenter.jl Style"}
+    ],
+    "JavaScript": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "jsdoc", "label": "JSDoc Style"},
+        {"value": "tsdoc", "label": "TSDoc Style"}
+    ],
+    "Go": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "godoc", "label": "GoDoc Style"}
+    ],
+    "Java": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "javadoc", "label": "JavaDoc Style"}
+    ],
+    "C++": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "doxygen", "label": "Doxygen Style"}
+    ],
+    "Ruby": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "yard", "label": "YARD Style"},
+        {"value": "rdoc", "label": "RDoc Style"}
+    ],
+    "Swift": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "markup", "label": "Swift Markup"}
+    ],
+    "Rust": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "rustdoc", "label": "Rustdoc Style"}
+    ],
+    "C#": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "xmldoc", "label": "XML Documentation"}
+    ],
+    "TypeScript": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "tsdoc", "label": "TSDoc Style"}
+    ],
+    "R": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "roxygen2", "label": "Roxygen2 Style"}
+    ],
+    "Perl": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "pod", "label": "POD Style"}
+    ],
+    "Lua": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "ldoc", "label": "LDoc Style"}
+    ],
+    "PHP": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "phpdoc", "label": "PHPDoc Style"}
+    ],
+    "Kotlin": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "kdoc", "label": "KDoc Style"}
+    ],
+    "SQL": [
+        {"value": "standard", "label": "Standard"},
+        {"value": "block", "label": "Block Comment Style"}
+    ]
+}
+
 # Predefined code snippets for the UI
 PREDEFINED_SNIPPETS = {
+    "Python Code Simple" : """ 
+    import time
+
+def calculate(iterations, param1, param2):
+    result = 1.0
+    for i in range(1, iterations+1):
+        j = i * param1 - param2
+        result -= (1/j)
+        j = i * param1 + param2
+        result += (1/j)
+    return result
+
+start_time = time.time()
+result = calculate(100_000_000, 4, 1) * 4
+end_time = time.time()
+
+print(f"Result: {result:.12f}")
+print(f"Execution Time: {(end_time - start_time):.6f} seconds")
+    """,
     "Python Code": """import time
 import random
 from typing import List, Tuple
@@ -279,6 +373,7 @@ public class MaxSubarraySum {
 # Map snippets to their corresponding languages
 SNIPPET_LANGUAGE_MAP = {
     "Python Code": "Python",
+    "Python Code Simple": "Python",
     "C++ Code": "C++",
     "Java Code": "Java"
 }

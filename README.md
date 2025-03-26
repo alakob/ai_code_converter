@@ -7,7 +7,7 @@ A powerful tool for converting and executing code between different programming 
 
 ## Overview
 
-AI Code Converter is a Python application that leverages various AI models to translate code between programming languages while maintaining functionality and idiomatic patterns.
+CodeXchangeAI  is a Python application that leverages various AI models to translate code between programming languages while maintaining functionality and idiomatic patterns.
 
 ### Key Features
 

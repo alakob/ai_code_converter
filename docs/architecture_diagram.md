@@ -1,6 +1,6 @@
 # Architecture Diagram
 
-This diagram illustrates the architecture and component relationships of the AI Code Converter application.
+This diagram illustrates the architecture and component relationships of the CodeXchange AI application.
 
 ## Application Flow Diagram
 

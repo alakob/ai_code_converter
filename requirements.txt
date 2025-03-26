@@ -6,7 +6,7 @@ python-dotenv>=1.0.0
 jinja2>=3.0.0 -e git+https://github.com/ed-donner/llm_engineering.git@39805081705dfd8c0f4a564d15e7d2f4780ba03c#egg=ai_code_converter
 aiofiles==23.2.1
 annotated-types==0.7.0
-anthropic==0.45.2
+anthropic==0.49.0
 anyio==4.8.0
 cachetools==5.5.1
 certifi==2025.1.31

@@ -35,7 +35,7 @@ Update the UI language selection dropdowns
 Update run functionality:
 If the language requires special execution capabilities, update the CodeExecutor class
 
-###### NOT DONE -0----
+###### DONE -----
 Phase 3: Update Template Enhancement and Testing
 For each language:
 
@@ -84,7 +84,8 @@ Add JavaScript code to handle the theme switching functionality
 Create CSS variable-based theme settings (colors, backgrounds, etc.)
 Store theme preference in browser localStorage for persistence -->
 
-Step 2: Add Document Checkbox Row
+# DONE 
+Step 2: Add Document Checkbox Row 
 please not not break, the code. be careful not to break the dynamic dropdown.
 Create a new row above the Upload accordion in app.py
 Add a checkbox component labeled "Document" with a default checked state
@@ -92,14 +93,19 @@ Add state handling to track the checkbox status
 Connect the checkbox state to control the visibility of the document type dropdown
 Style the new row to match the existing UI design
 
-Step 3: Implement Document Type Dropdown
+# DONE
+Step 3: Improve Document Type Dropdown
+please not not break, the code. be careful not to break the dynamic dropdown.
 Extract document style options from the template.j2 file for each language
 Create a function to parse the template.j2 file and extract document types per language
-Add a dropdown component for document types in the new row
-Implement dynamic population of the dropdown based on the selected target language
+Implement dynamic population of the document type dropdown based on the selected target language
+Update the prompt template to include conditionals for the documentation settings
+Pass the document parameters to the template.render() call
+Update any model-specific prompt handling to respect these settings
+
 Add visibility control based on the document checkbox state
 Connect the dropdown selection to the code conversion process
-
+# DONE  
 Step 4: Update Application Logic
 Modify the code conversion function to incorporate the selected document type
 Update the template rendering to include the selected document style
@@ -107,6 +113,8 @@ Ensure proper state management between components
 Add event listeners to update document types when language selection changes
 Handle default values for document types when switching languages
 
+
+# ONGOIONG ----
 Step 5: Testing & Final Adjustments
 Test all combinations of languages and document types
 Verify the dark/light mode toggle works correctly

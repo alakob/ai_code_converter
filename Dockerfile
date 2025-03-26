@@ -2,8 +2,8 @@
 FROM ubuntu:22.04 AS builder
 
 # Add metadata about build environment
-LABEL org.opencontainers.image.title="AI Code Converter Builder"
-LABEL org.opencontainers.image.description="Multi-platform build environment for AI Code Converter"
+LABEL org.opencontainers.image.title="CodeXchange AI Builder"
+LABEL org.opencontainers.image.description="Multi-platform build environment for CodeXchange AI"
 
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive

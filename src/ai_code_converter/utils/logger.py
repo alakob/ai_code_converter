@@ -1,4 +1,4 @@
-"""Logging configuration for the AI Code Converter."""
+"""Logging configuration for the CodeXchange AI."""
 
 import json
 import logging
@@ -49,7 +49,7 @@ def log_execution_time(logger: logging.Logger) -> Callable:
                 "Function Entry | %s | Args: %s | Kwargs: %s",
                 func.__name__,
                 [str(arg) for arg in args],
-                {k: str(v) for k, v in kwargs.items() if not k.lower().contains(('password', 'key', 'token', 'secret'))}
+                {k: str(v) for k, v in kwargs.items() if not any(sensitive in k.lower() for sensitive in ('password', 'key', 'token', 'secret'))}
             )
             
             try:

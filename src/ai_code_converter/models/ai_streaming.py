@@ -3,7 +3,7 @@
 import logging
 import time
 from typing import Generator, Any, Callable, TypeVar, cast
-import anthropic
+from anthropic import Anthropic, AnthropicError, APIError, RateLimitError, AuthenticationError
 import google.generativeai as genai
 from openai import OpenAI
 
@@ -113,7 +113,7 @@ def calculate_next_delay(current_delay: float, exponential_base: float, jitter: 
 class AIModelStreamer:
     """Class for handling streaming responses from various AI models."""
     
-    def __init__(self, openai_client: OpenAI, claude_client: anthropic.Anthropic,
+    def __init__(self, openai_client: OpenAI, claude_client: Anthropic,
                  deepseek_client: OpenAI, groq_client: OpenAI, gemini_model: genai.GenerativeModel):
         """Initialize with AI model clients."""
         self.openai = openai_client
@@ -185,9 +185,9 @@ class AIModelStreamer:
                 # If we get here, we succeeded, so break out of retry loop
                 break
                     
-            except anthropic.ApiError as e:
+            except (AnthropicError, APIError) as e:
                 # Special handling for overloaded_error
-                if hasattr(e, 'error') and e.error.get('type') == 'overloaded_error':
+                if hasattr(e, 'error') and getattr(e, 'error', {}).get('type') == 'overloaded_error':
                     if retry_count < max_retries:
                         retry_count += 1
                         wait_time = delay * (2 ** (retry_count - 1))  # Exponential backoff

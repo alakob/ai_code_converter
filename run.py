@@ -1,4 +1,4 @@
-"""Runner script for AI Code Converter."""
+"""Runner script for the CodeXchange AI."""
 import sys
 from pathlib import Path
 from setuptools import setup, find_packages

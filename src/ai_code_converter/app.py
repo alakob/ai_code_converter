@@ -1,4 +1,4 @@
-"""Main application module for AI Code Converter."""
+"""Main application module for CodeXchange AI."""
 
 import logging
 import os
@@ -8,7 +8,7 @@ from datetime import datetime
 import time
 import threading
 
-import anthropic
+from anthropic import Anthropic, AnthropicError
 import google.generativeai as genai
 import gradio as gr
 from dotenv import load_dotenv
@@ -45,7 +45,7 @@ from src.ai_code_converter.config import (
 logger = setup_logger(__name__)
 
 class CodeConverterApp:
-    """Main application class for the AI Code Converter."""
+    """Main application class for the CodeXchange AI."""
     
     def __init__(self):
         """Initialize the application components."""
@@ -87,7 +87,7 @@ class CodeConverterApp:
         
         # Initialize AI clients
         self.openai = OpenAI()
-        self.claude = anthropic.Anthropic()
+        self.claude = Anthropic()
         self.deepseek = OpenAI(
             base_url="https://api.deepseek.com/v1",
             api_key=os.getenv('DEEPSEEK_API_KEY', 'your-key-if-not-using-env')
@@ -185,7 +185,7 @@ class CodeConverterApp:
                 )
                 target_lang = gr.Dropdown(
                     choices=[lang for lang in SUPPORTED_LANGUAGES if lang != "Python"],
-                    value="Julia",
+                    value="R",
                     label="Code Out",
                     interactive=True
                 )
@@ -201,6 +201,52 @@ class CodeConverterApp:
                     step=0.1,
                     label="Temperature"
                 )
+            
+            # Document Options Row
+            with gr.Row(visible=True) as document_row:
+                document_checkbox = gr.Checkbox(
+                    label="Document",
+                    value=True,
+                    info="Generate documentation for the converted code"
+                )
+                
+                # Import document styles from config
+                from src.ai_code_converter.config import DOCUMENT_STYLES
+                
+                # Default to R document styles initially
+                default_doc_styles = DOCUMENT_STYLES.get("R", [])
+                
+                # Find the standard style in the choices or use the first one
+                default_value = next((item["value"] for item in default_doc_styles if item["value"] == "standard"), 
+                                    default_doc_styles[0]["value"] if default_doc_styles else "")
+                
+                # Convert the styles to the format expected by Gradio
+                choices_list = []
+                for style in default_doc_styles:
+                    choices_list.append(style["label"])
+                
+                # Map style labels to values for internal use
+                self.doc_style_value_map = {style["label"]: style["value"] for style in default_doc_styles}
+                
+                default_label = next((style["label"] for style in default_doc_styles if style["value"] == default_value), 
+                                      default_doc_styles[0]["label"] if default_doc_styles else "Standard")
+                
+                document_type_dropdown = gr.Dropdown(
+                    choices=choices_list,
+                    value=default_label,
+                    label="Documentation Style",
+                    visible=True,
+                    interactive=True
+                )
+            
+            # Get default value for document style state
+            default_doc_styles = DOCUMENT_STYLES.get("Python", [])
+            default_value = next((item["value"] for item in default_doc_styles if item["value"] == "standard"), 
+                                default_doc_styles[0]["value"] if default_doc_styles else "")
+            
+            # Add states to track document options
+            document_checkbox_state = gr.State(value=True)
+            document_style_state = gr.State(value=default_value)
             
             # File Operations and Code Snippets
             with gr.Accordion("Upload & Code Snippets", open=False, elem_classes="accordion"):
@@ -223,7 +269,7 @@ class CodeConverterApp:
             # Action Buttons
             with gr.Row():
                 convert_btn = gr.Button(
-                    "Convert Python to Julia",
+                    "Convert Python to R",
                     variant="primary",
                     size="sm"
                 )
@@ -241,7 +287,7 @@ class CodeConverterApp:
                     size="sm"
                 )
                 run_converted_btn = gr.Button(
-                    "Run Julia",
+                    "Run R",
                     variant="huggingface",
                     size="sm"
                 )
@@ -284,7 +330,8 @@ class CodeConverterApp:
                 convert_btn, clear_btn,
                 run_source_btn, run_converted_btn,
                 source_result, converted_result,
-                source_download, converted_download
+                source_download, converted_download,
+                document_checkbox, document_type_dropdown, document_checkbox_state, document_style_state
             )
             
             return demo
@@ -332,9 +379,26 @@ class CodeConverterApp:
         source_result: gr.Code,
         converted_result: gr.Code,
         source_download: gr.File,
-        converted_download: gr.File
+        converted_download: gr.File,
+        document_checkbox: gr.Checkbox,
+        document_type_dropdown: gr.Dropdown,
+        document_checkbox_state: gr.State,
+        document_style_state: gr.State
     ) -> None:
         """Set up all event handlers for the Gradio interface."""
+        
+        # Document checkbox handler
+        def _update_document_dropdown_visibility(is_checked: bool) -> tuple[gr.update, bool]:
+            """Update document type dropdown visibility based on checkbox state"""
+            logger.info(f"Document checkbox changed to: {is_checked}")
+            return gr.update(visible=is_checked), is_checked
+        
+        document_checkbox.change(
+            fn=_update_document_dropdown_visibility,
+            inputs=[document_checkbox],
+            outputs=[document_type_dropdown, document_checkbox_state],
+            queue=False
+        )
         
         # Language change handlers
         source_lang.change(
@@ -377,7 +441,10 @@ class CodeConverterApp:
         # Convert button handler
         convert_btn.click(
             fn=self._stream_converted_code,
-            inputs=[source_code, source_lang, target_lang, model, temperature, validation_state],
+            inputs=[
+                source_code, source_lang, target_lang, model, temperature, validation_state,
+                document_checkbox_state, document_type_dropdown
+            ],
             outputs=[converted_code, converted_download],
             queue=True,
             show_progress=True
@@ -455,12 +522,17 @@ class CodeConverterApp:
             inputs=target_lang,
             outputs=converted_code,
             queue=False
+        ).then(
+            fn=self._update_document_styles,
+            inputs=[target_lang],
+            outputs=[document_type_dropdown, document_style_state],
+            queue=False
         )
 
     def _handle_source_language_change(
         self, code: str, new_lang: str, current_error: str
     ) -> tuple[str, str, str, gr.update, bool]:
-        """Handle source language change with validation."""
+        """Validate code against newly selected source language."""
         logger.info(f"Verifying code for language change to: {new_lang}")
         
         if not code:
@@ -483,15 +555,14 @@ class CodeConverterApp:
     def _handle_snippet_selection(
         self, snippet_name: str, current_error: str
     ) -> Tuple[str, str, str, str, gr.update, bool]:
-        """Handle snippet selection with language synchronization.
+        """Load and validate selected code snippet.
         
         Args:
-            snippet_name: The name of the selected snippet
-            current_error: Any existing error message
+            snippet_name: Selected snippet name
+            current_error: Existing error message
             
         Returns:
-            Tuple containing updated values for source code, source language,
-            error message, error state, error accordion visibility update, and validation state
+            Code, language, error info, and validation status
         """
         logger.info(f"Handling snippet selection: {snippet_name}")
         
@@ -537,7 +608,7 @@ class CodeConverterApp:
         return source_code, source_lang, error_message, error_state, error_accordion_visible, is_valid
 
     def _update_code_language(self, lang: str) -> gr.update:
-        """Update code component language based on selection."""
+        """Set syntax highlighting based on selected language."""
         if not lang:
             return gr.update(language="python")
         
@@ -551,7 +622,7 @@ class CodeConverterApp:
         return gr.update(language=gradio_lang)
 
     def _update_target_options(self, source_lang: str) -> gr.update:
-        """Update target language options excluding the selected source language."""
+        """Filter target language dropdown to exclude source language."""
         if not source_lang:
             return gr.update(choices=SUPPORTED_LANGUAGES)
         available_languages = [lang for lang in SUPPORTED_LANGUAGES if lang != source_lang]
@@ -563,7 +634,7 @@ class CodeConverterApp:
     def _update_button_labels(
         self, source_lang: str, target_lang: str
     ) -> tuple[gr.update, gr.update, gr.update]:
-        """Update button labels based on selected languages."""
+        """Customize button labels with selected language names."""
         source_lang = source_lang or "Python"
         target_lang = target_lang or "Julia"
         
@@ -578,6 +649,40 @@ class CodeConverterApp:
             gr.update(value=run_target_label),
             gr.update(value=convert_label)
         ]
+        
+    def _update_document_styles(self, target_lang: str) -> tuple[gr.update, str]:
+        """Update document style dropdown based on target language.
+        
+        Args:
+            target_lang: Target programming language
+            
+        Returns:
+            Tuple of (dropdown_update, default_style_value)
+        """
+        from src.ai_code_converter.config import DOCUMENT_STYLES
+        
+        logger.info(f"Updating document styles for language: {target_lang}")
+        
+        # Get document styles for the selected language, fallback to empty list
+        styles = DOCUMENT_STYLES.get(target_lang, [])
+        
+        # Default to 'standard' style if available, otherwise use first style in list
+        default_style_value = "standard"
+        if styles and not any(style.get("value") == "standard" for style in styles):
+            default_style_value = styles[0].get("value") if styles else "standard"
+        
+        # Convert the styles to the format expected by Gradio
+        choices_list = [style["label"] for style in styles]
+        
+        # Update the style label-to-value mapping
+        self.doc_style_value_map = {style["label"]: style["value"] for style in styles}
+        
+        # Get the label corresponding to the default value
+        default_label = next((style["label"] for style in styles if style["value"] == default_style_value), 
+                            styles[0]["label"] if styles else "Standard")
+            
+        logger.info(f"Document styles updated: {len(styles)} styles available")
+        return gr.update(choices=choices_list, value=default_label), default_style_value
 
     def _handle_code_input(
         self, code: str, lang_in: str, current_error: str
@@ -624,10 +729,15 @@ class CodeConverterApp:
         lang_out: str,
         model: str,
         temperature: float,
-        is_valid: bool
+        is_valid: bool,
+        document_enabled: bool = True,
+        document_style: str = "Standard"
     ) -> tuple[gr.update, gr.update]:
         """Stream the converted code with syntax highlighting."""
-        response = self._convert_code(code, lang_in, lang_out, model, temperature)
+        response = self._convert_code(
+            code, lang_in, lang_out, model, temperature,
+            document_enabled=document_enabled, document_style=document_style
+        )
         
         if not response:
             return gr.update(value="", visible=True), gr.update(visible=False)
@@ -740,11 +850,24 @@ class CodeConverterApp:
             )
 
     @log_execution_time(logger)
-    def _convert_code(self, code: str, lang_in: str, lang_out: str, model: str, temp: float) -> str:
-        """Convert code between programming languages with detailed logging."""
-        logger.info("="*50)
-        logger.info("STARTING CODE CONVERSION PROCESS")
-        logger.info("="*50)
+    def _convert_code(self, code: str, lang_in: str, lang_out: str, model: str, temp: float, document_enabled: bool = True, document_style: str = "Standard") -> str:
+        """Convert code between programming languages.
+        
+        Args:
+            code: Source code to convert
+            lang_in: Source language
+            lang_out: Target language
+            model: LLM model to use
+            temp: Temperature parameter
+            document_enabled: Whether to include documentation
+            document_style: Documentation style to apply
+            
+        Returns:
+            Converted code string
+        """
+        logger.info("STARTING CODE CONVERSION")
+        logger.info(f"Params: {lang_in} → {lang_out} | Model: {model} | Temp: {temp}")
+        logger.info(f"Documentation: {document_enabled}, Style: {document_style}")
         
         # Log input parameters (excluding sensitive data)
         logger.debug({
@@ -791,15 +914,27 @@ class CodeConverterApp:
             
             # Create and execute prompt
             prompt_start = time.time()
+            
+            # Map the document style label to its value
+            style_value = "standard"  # Default fallback
+            if document_style in self.doc_style_value_map:
+                style_value = self.doc_style_value_map[document_style]
+            else:
+                logger.warning(f"Document style mapping not found for '{document_style}', using 'standard' as fallback")
+            
             prompt = self.template.render(
                 source_language=lang_in,
                 target_language=lang_out,
-                input_code=code
+                input_code=code,
+                doc_enabled=document_enabled,
+                doc_style=style_value
             )
             logger.debug(
                 "Prompt creation completed in %.4fs",
                 time.time() - prompt_start
             )
+            
+            logger.info(f"Template: doc_enabled={document_enabled}, style={style_value} (from {document_style})")
             
             # Stream model response
             stream_start = time.time()

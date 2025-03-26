@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# AI Code Converter Docker Wrapper Script
-# This script simplifies running the AI Code Converter application using Docker.
+# CodeXchange AI Docker Wrapper Script
+# This script simplifies running the CodeXchange AI application using Docker.
 #
 
 set -e
@@ -31,7 +31,7 @@ API_KEY_REMIND=false
 display_banner() {
     echo -e "${BLUE}"
     echo "╔═══════════════════════════════════════════════════╗"
-    echo "║        AI Code Converter - Docker Launcher        ║"
+    echo "║        CodeXchange AI - Docker Launcher           ║"
     echo "╚═══════════════════════════════════════════════════╝"
     echo -e "${NC}"
 }
@@ -116,7 +116,7 @@ check_env_file() {
 check_api_keys() {
     if [ "$API_KEY_REMIND" = true ] || [ "$1" = true ]; then
         echo -e "${YELLOW}API Key Requirements:${NC}"
-        echo "The AI Code Converter requires API keys for the following services:"
+        echo "The CodeXchange AI requires API keys for the following services:"
         echo "  - OPENAI_API_KEY (Required for OpenAI GPT models)"
         echo "  - ANTHROPIC_API_KEY (Required for Claude models)"
         echo "  - GOOGLE_API_KEY (Required for Google Gemini models)"
@@ -174,7 +174,7 @@ parse_arguments() {
                 exit 0
                 ;;
             -v|--version)
-                echo "AI Code Converter Docker Wrapper v$VERSION"
+                echo "CodeXchange AI Docker Wrapper v$VERSION"
                 exit 0
                 ;;
             *)
@@ -208,7 +208,7 @@ build_image() {
 
 # Run the container
 run_container() {
-    echo -e "${BLUE}Starting the AI Code Converter...${NC}"
+    echo -e "${BLUE}Starting the CodeXchange AI...${NC}"
     
     # Export PORT from the environment for docker-compose
     export PORT=$PORT
@@ -235,14 +235,14 @@ run_container() {
 
 # Stop the container
 stop_container() {
-    echo -e "${BLUE}Stopping the AI Code Converter...${NC}"
+    echo -e "${BLUE}Stopping the CodeXchange AI...${NC}"
     $COMPOSE_CMD stop
     echo -e "${GREEN}Container stopped.${NC}"
 }
 
 # Restart the container
 restart_container() {
-    echo -e "${BLUE}Restarting the AI Code Converter...${NC}"
+    echo -e "${BLUE}Restarting the CodeXchange AI...${NC}"
     $COMPOSE_CMD restart
     echo -e "${GREEN}Container restarted.${NC}"
     
@@ -253,14 +253,14 @@ restart_container() {
 
 # Bring down the container
 down_container() {
-    echo -e "${BLUE}Stopping and removing the AI Code Converter container...${NC}"
+    echo -e "${BLUE}Stopping and removing the CodeXchange AI container...${NC}"
     $COMPOSE_CMD down
     echo -e "${GREEN}Container stopped and removed.${NC}"
 }
 
 # Display access information
 display_access_info() {
-    echo -e "${GREEN}The AI Code Converter is running!${NC}"
+    echo -e "${GREEN}The CodeXchange AI is running!${NC}"
     echo -e "Access the application at: ${BLUE}http://localhost:$PORT${NC}"
     
     # Check if port is custom and update info

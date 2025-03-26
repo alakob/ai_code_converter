@@ -1,4 +1,4 @@
-"""Main entry point for the AI Code Converter application."""
+"""Main entry point for the CodeXchange AI application."""
 
 from src.ai_code_converter.app import CodeConverterApp
 from src.ai_code_converter.utils.logger import setup_logger
@@ -10,7 +10,7 @@ def main():
     
     try:
         logger.info("="*50)
-        logger.info("Starting AI Code Converter")
+        logger.info("Starting CodeXchange AI")
         logger.info("="*50)
         
         logger.info("Initializing application components")

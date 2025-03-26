@@ -21,17 +21,32 @@ Your task is to convert it to **{{ target_language }}**, ensuring that the outpu
 
 # INSTRUCTIONS
 - Respond only with **{{ target_language }}** code.
-- Provide minimal but useful comments where necessary.
+{% if doc_enabled %}{% else %}- Provide minimal comments, focusing only on critical parts of the code.{% endif %}
 - Use base libraries and packages where possible.
 - Ensure that data types and syntax are correctly adapted between languages.
 - Avoid explanations outside of comments in the code.
 - Maintain identical behavior for functions like random number generation to ensure consistent output.
 
+{% if doc_enabled %}
+# DOCUMENTATION INSTRUCTIONS
+- Include comprehensive documentation in your response following the style specified below.
+- Document the purpose and functionality of classes, functions, and important code blocks.
+- Explain important parameters, return values, and exceptions.
+- Make documentation clear and helpful for new developers to understand the code.
+{% endif %}
+
 {% if target_language == 'Python' %}
 # ADDITIONAL INSTRUCTIONS FOR PYTHON
+- Use Black's default settings
+- Normalize code structure
+- Produce clean, consistent code formatting
 - Use Pythonic idioms and list comprehensions where appropriate.
 - Ensure proper exception handling and type safety.
 - Follow PEP 8 styling conventions.
+- Correct Python indentation (4 spaces)
+- Proper syntax for Python
+- No syntax errors
+- Complete, runnable code
 {% if doc_style == 'google' %}
 - Use Google-style docstrings (summary line, blank line, Args:, Returns:, Raises:)
 {% elif doc_style == 'numpy' %}
