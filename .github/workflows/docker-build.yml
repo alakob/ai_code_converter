@@ -36,6 +36,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
+        id: build-push
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -45,15 +46,15 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          load: true  # Load image to local docker for scanning
 
-      # Use local image reference for Trivy scan when secrets aren't available
       - name: Run Trivy vulnerability scanner
         id: trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: "${{ secrets.DOCKERHUB_USERNAME }}/codexchangeai:${{ github.ref_name }}"
+          image-ref: "${{ secrets.DOCKERHUB_USERNAME }}/codexchangeai:${{ steps.meta.outputs.version }}"
           format: 'table'
-          exit-code: '0'  # Changed to not fail the build, but we'll handle results
+          exit-code: '0'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
@@ -62,8 +63,7 @@ jobs:
       - name: Check for vulnerabilities
         if: ${{ always() }}
         run: |
-          if [[ "${{ steps.trivy.outputs.vulnerabilities }}" != "" ]]; then
+          if [[ -n "${{ steps.trivy.outputs.vulnerabilities }}" ]]; then
             echo "::warning::Security vulnerabilities found in Docker image!"
             echo "${{ steps.trivy.outputs.vulnerabilities }}"
-            # Could integrate with Slack/Teams notification here
           fi
