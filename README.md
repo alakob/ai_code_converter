@@ -2,6 +2,7 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![CI/CD](https://github.com/alakob/ai_code_converter/actions/workflows/python-test.yml/badge.svg)](https://github.com/alakob/ai_code_converter/actions/workflows/python-test.yml)
 
 A powerful tool for converting and executing code between different programming languages using AI models.
 
@@ -46,8 +47,35 @@ chmod +x run-docker.sh
 ./run-docker.sh -p 8080    # Run on port 8080
 ./run-docker.sh -s         # Stop the container
 ./run-docker.sh -h         # Show help message
-
 ```
+
+## CI/CD Pipeline
+
+CodeXchange AI uses GitHub Actions for continuous integration and deployment. The pipeline includes:
+
+### Automated Testing
+- Runs Python tests on multiple Python versions (3.9, 3.10, 3.11)
+- Performs code linting and style checks
+- Generates test coverage reports
+
+### Docker Image Validation
+- Builds the Docker image to verify Dockerfile integrity
+- Performs vulnerability scanning with Trivy
+- Validates container startup and dependencies
+
+### Deployment Automation
+- Automatically deploys to staging environment when changes are pushed to develop branch
+- Creates production releases with semantic versioning
+- Publishes Docker images to Docker Hub
+
+### Setting Up for Development
+
+To use the CI/CD pipeline in your fork, you'll need to add these secrets to your GitHub repository:
+
+1. `DOCKERHUB_USERNAME`: Your Docker Hub username
+2. `DOCKERHUB_TOKEN`: A Docker Hub access token (not your password)
+
+See the [CI/CD documentation](docs/ci_cd_pipeline.md) for detailed setup instructions.
 
 The wrapper script provides several options for customizing the Docker deployment:
 

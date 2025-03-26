@@ -2,6 +2,8 @@
 
 This diagram illustrates the architecture and component relationships of the CodeXchange AI application.
 
+> **Note:** For detailed information about the CI/CD pipeline, see [CI/CD Pipeline Architecture](ci_cd_pipeline.md).
+
 ## Application Flow Diagram
 
 ```mermaid
