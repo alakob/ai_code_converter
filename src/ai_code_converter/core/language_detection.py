@@ -106,65 +106,153 @@ class LanguageDetector:
             r'class\s+\w+(?:\s*:\s*\w+)?\s*\{',    # Class declaration
             r'struct\s+\w+\s*\{',                    # Struct declaration
             r'@IBOutlet|@IBAction',                    # iOS annotations
-            r'guard\s+let',                            # Guard statement
-            r'if\s+let|if\s+var',                      # Optional binding
-            r'override\s+func'                         # Method override
+            r'guard\s+let',                           # Guard statement
+            r'if\s+let|if\s+var',                     # Optional binding
+            r'override\s+func',                       # Method override
+            r'\bimport\s+Swift\b',                   # Swift import 
+            r'\?\?',                                 # Nil coalescing operator
+            r'extension\s+\w+',                      # Extensions
+            r'protocol\s+\w+',                       # Protocols
+            r'enum\s+\w+\s*(?::\s*\w+)?\s*\{',      # Enums
+            r'case\s+\w+(?:\(.*?\))?',               # Enum cases
+            r'typealias\s+\w+',                      # Type aliases
+            r'init\s*\(',                            # Initializer
+            r'deinit\s*\{',                          # Deinitializer
+            r'\$\d+',                                # String interpolation
+            r'\bOptional<',                          # Optional type
+            r'\bas\?',                               # Type casting
+            r'\bas!',                                # Forced type casting
+            r'convenience\s+init',                    # Convenience initializer
+            r'required\s+init',                      # Required initializer
+            r'\bUInt\d*\b',                          # Swift integer types
+            r'\bInt\d*\b',                           # Swift integer types
+            r'\barray<',                             # Swift arrays
+            r'\bdictionary<',                        # Swift dictionaries
+            r'@escaping',                            # Escaping closures
+            r'\bweak\s+var',                         # Weak references
+            r'\bunowned\b'                            # Unowned references
         ]
-        return any(re.search(pattern, code) for pattern in patterns)
+        return any(re.search(pattern, code, re.IGNORECASE) for pattern in patterns)
 
     @staticmethod
     def detect_rust(code: str) -> bool:
         """Detect if code is Rust."""
         patterns = [
             r'fn\s+\w+\s*\([^)]*\)\s*(?:->\s*[^{]+)?\s*\{',  # Function declaration
-            r'let\s+mut\s+\w+',              # Mutable variable declaration
-            r'struct\s+\w+\s*\{[^}]*\}',    # Struct definition
-            r'impl\s+\w+(?:\s+for\s+\w+)?', # Implementation block
-            r'use\s+[\w:]+',                 # Import/use statement
-            r'pub\s+(?:fn|struct|enum|mod)',  # Public items
-            r'Vec<[^>]+>',                   # Vec generic type
-            r'match\s+\w+\s*\{',             # Match expression
-            r'#\[\w+(?:\([^)]*\))?\]'        # Attribute macros
+            r'let\s+mut\s+\w+',                # Mutable variable declaration
+            r'struct\s+\w+\s*\{[^}]*\}',      # Struct definition
+            r'impl\s+\w+(?:\s+for\s+\w+)?',   # Implementation block
+            r'use\s+[\w:]+',                   # Import/use statement
+            r'pub\s+(?:fn|struct|enum|mod)',    # Public items
+            r'Vec<[^>]+>',                     # Vec generic type
+            r'match\s+\w+\s*\{',               # Match expression
+            r'#\[\w+(?:\([^)]*\))?\]',          # Attribute macros
+            r'\bResult<',                       # Result type
+            r'\bOption<',                       # Option type
+            r'\bmod\s+\w+',                     # Module declaration
+            r'&mut\s+\w+',                      # Mutable references
+            r'&\w+',                            # Immutable references
+            r'\|[^|]*\|\s*\{',                 # Closure syntax
+            r'::\s*[A-Z]\w+',                   # Path to types
+            r'::(?:<[^>]+>)?\s*\w+\(',          # Method call with turbofish
+            r'enum\s+\w+\s*\{',                 # Enum definition
+            r'-\s*>\s*[\w<>:]+',                # Return type arrow
+            r'async\s+fn',                      # Async functions
+            r'await',                           # Await syntax
+            r'move\s*\|',                       # Move closures
+            r'trait\s+\w+',                     # Trait definition
+            r'\bSome\(',                        # Some variant
+            r'\bNone\b',                        # None variant
+            r'\bOk\(',                          # Ok variant
+            r'\bErr\(',                         # Err variant
+            r'\bcrate::\w+',                    # Crate references
+            r'pub\(crate\)',                    # Crate visibility
+            r'\bdyn\s+\w+',                     # Dynamic dispatch
+            r'\bif\s+let\s+Some',                # If let for Option
+            r'\bif\s+let\s+Ok'                  # If let for Result
         ]
-        return any(re.search(pattern, code) for pattern in patterns)
+        return any(re.search(pattern, code, re.IGNORECASE) for pattern in patterns)
         
     @staticmethod
     def detect_csharp(code: str) -> bool:
         """Detect if code is C#."""
         patterns = [
-            r'using\s+[\w.]+;',                    # Using statement
-            r'namespace\s+[\w.]+',                 # Namespace declaration
+            r'using\s+[\w.]+;',                      # Using statement
+            r'namespace\s+[\w.]+',                   # Namespace declaration
             r'(public|private|protected|internal)\s+(class|struct|interface|enum)',  # Type declarations
             r'(public|private|protected|internal)\s+[\w<>\[\]]+\s+\w+\s*\(',  # Method declaration
-            r'Console\.(Write|WriteLine)',         # Console output
-            r'\bvar\s+\w+\s*=',                   # Var keyword
-            r'new\s+\w+\s*\(',                    # Object instantiation
-            r'\bawait\s+',                         # Async/await
-            r'\btask<',                            # Task object
-            r'\bdynamic\b',                        # Dynamic type
-            r'\bstring\b',                         # String type
-            r'`\'\{0\}\'`'                         # String interpolation
+            r'Console\.(Write|WriteLine)',           # Console output
+            r'\bvar\s+\w+\s*=',                     # Var keyword
+            r'new\s+\w+\s*\(',                      # Object instantiation
+            r'\bawait\s+',                           # Async/await
+            r'\btask<',                              # Task object
+            r'\bdynamic\b',                          # Dynamic type
+            r'\bstring\b',                           # String type
+            r'\$".*?\{.*?\}.*?"',                   # String interpolation with $ 
+            r'\bIEnumerable<',                       # C# generics
+            r'\bList<',                             # C# collections
+            r'\bdictionary<',                        # C# collections
+            r'\bforeach\s*\(',                      # foreach loops
+            r'\bassert\.\w+\(',                     # Unit testing
+            r'\[\w+\]',                             # Attributes
+            r'\bdelegate\b',                         # Delegates
+            r'\bevent\b',                            # Events
+            r'\bpartial\b',                          # Partial classes
+            r'\bvirtual\b',                          # Virtual methods
+            r'\boverride\b',                         # Override methods
+            r'\?\s*\w+\s*\??',                      # Nullable types
+            r'<\w+>\s*where\s+\w+\s*:',             # Generic constraints
+            r'set\s*\{',                            # Property setters
+            r'get\s*\{',                            # Property getters
+            r'using\s*\(',                          # Using statements with blocks
+            r'\bget;\s*set;',                       # Auto-properties
+            r'\bselect\s+new\b'                      # LINQ expressions
         ]
         return any(re.search(pattern, code, re.IGNORECASE) for pattern in patterns)
         
     @staticmethod
     def detect_typescript(code: str) -> bool:
         """Detect if code is TypeScript."""
-        patterns = [
+        # TypeScript-specific patterns (not commonly found in other languages)
+        ts_patterns = [
             r':\s*[A-Za-z]+(?:<[^>]+>)?\s*(?:=|;|\)|\})',  # Type annotations
-            r'interface\s+\w+\s*\{',               # Interface declaration
+            r'interface\s+\w+\s*\{',                 # Interface declaration
             r'class\s+\w+(?:\s+implements|\s+extends)?', # Class with implements or extends
-            r'(private|public|protected)\s+\w+',    # Access modifiers
-            r'\w+\s*<[^>]+>',                     # Generic types
-            r'import\s+\{[^}]+\}\s+from',          # ES6 import
+            r'(private|public|protected)\s+\w+',      # Access modifiers
+            r'\w+\s*<[^>]+>',                       # Generic types
+            r'import\s+\{[^}]+\}\s+from',            # ES6 import
             r'export\s+(interface|class|type|const|let)', # Exports
-            r'type\s+\w+\s*=',                     # Type aliases
-            r'enum\s+\w+',                          # Enums
-            r'@\w+(?:\([^)]*\))?'                  # Decorators
+            r'type\s+\w+\s*=',                       # Type aliases
+            r'enum\s+\w+',                            # Enums
+            r'@\w+(?:\([^)]*\))?',                    # Decorators
+            r'\w+\s*:\s*(?:string|number|boolean|any|void|never|unknown)', # Basic TypeScript types
+            r'(?:string|number|boolean|any|void)\[\]', # Array type notation
+            r'readonly\s+\w+',                      # Readonly modifier
+            r'namespace\s+\w+',                     # TypeScript namespaces
+            r'declare\s+(?:var|let|const|function|class|interface)', # Declarations
+            r'<[^>]+>\(',                           # Generic function calls
+            r'extends\s+\w+<',                      # Generic type inheritance
+            r'implements\s+\w+',                    # Interface implementation
+            r'as\s+(?:string|number|boolean|any)',  # Type assertions
+            r'\?\s*:',                              # Optional properties
+            r'\w+\s*\?\s*:',                        # Optional parameters
+            r'keyof\s+\w+',                         # keyof operator
+            r'typeof\s+\w+',                        # typeof operator
+            r'\bReadonly<',                         # Utility types
+            r'\bPartial<',                          # Utility types
+            r'\bRequired<',                         # Utility types
+            r'\bRecord<',                           # Utility types
+            r'\|\s*null',                           # Union with null
+            r'\|\s*undefined',                      # Union with undefined
+            r'\w+\s*&\s*\w+',                       # Intersection types
+            r'import\s+type',                       # Import types
+            r'export\s+type'                        # Export types
         ]
         
-        # Check for TypeScript unique patterns AND JavaScript patterns (since TS is a superset of JS)
-        ts_unique = any(re.search(pattern, code) for pattern in patterns)
+        # Check for TypeScript-specific patterns
+        ts_unique = any(re.search(pattern, code, re.IGNORECASE) for pattern in ts_patterns)
+        
+        # JavaScript patterns for basic JS syntax (TypeScript is a superset of JS)
         js_patterns = [
             r'function\s+\w+\s*\([^)]*\)',  # Function declaration
             r'const\s+\w+\s*=',             # Const declaration
@@ -172,9 +260,28 @@ class LanguageDetector:
             r'var\s+\w+\s*=',               # Var declaration
             r'console\.(log|error|warn)'    # Console methods
         ]
-        js_general = any(re.search(pattern, code) for pattern in js_patterns)
         
-        return ts_unique and js_general
+        js_general = any(re.search(pattern, code, re.IGNORECASE) for pattern in js_patterns)
+        
+        # For TypeScript detection, we need to differentiate between object property definitions (which exist in JS)
+        # and type annotations (which are unique to TS)
+        
+        # Check for type annotations in context (not inside object literals)
+        type_annotation_patterns = [
+            r'function\s+\w+\([^)]*\)\s*:\s*\w+',  # Function return type
+            r':\s*(?:string|number|boolean|any|void|null|undefined)\b', # Basic type annotations
+            r':\s*[A-Z][\w]+\b',  # Custom type annotations (type names typically start with capital letter)
+            r':\s*[\w\[\]<>|&]+' # Complex type annotations
+        ]
+        
+        has_type_annotation = any(re.search(pattern, code) for pattern in type_annotation_patterns)
+        
+        # Look for object literals in JS to avoid false positives
+        js_object_literal = re.search(r'\{\s*\w+\s*:\s*[^:\{]+\s*(?:,|\})', code) is not None
+        
+        # Only return true for TypeScript-specific patterns or if we have type annotations
+        # that don't just look like JS object literals
+        return ts_unique or (has_type_annotation and not (js_object_literal and not ts_unique))
         
     @staticmethod
     def detect_r(code: str) -> bool:
@@ -373,7 +480,7 @@ class LanguageDetector:
         Returns:
             Detected language name or None if unknown
         """
-        # Use a scoring system to prioritize more specific language patterns
+        # Initial matching - which language detectors return positive
         matches = {}
         
         # First pass: check which languages match
@@ -387,70 +494,238 @@ class LanguageDetector:
         # If only one language matches, return it
         if len(matches) == 1:
             return list(matches.keys())[0]
-            
-        # Second pass: score the matches based on specific language features
-        # These are language-specific unique patterns that are less likely to overlap
+        
+        # Improved scoring system with distinctive language features
+        # These patterns are selected to be highly distinctive to each language
+        # Each pattern is assigned a weight based on how uniquely it identifies a language
         unique_patterns = {
-            "PHP": r'<\?php',
-            "SQL": r'(?i)SELECT\s+[\w\*,\s]+\s+FROM',
-            "Perl": r'\buse\s+[\w:]+\s*;|\bmy\s+(?:\$|@|%)',
-            "Lua": r'\blocal\s+\w+|\bfunction\s+\w+(?:\w*\.\w+)*\s*\(',
-            "Kotlin": r'\bfun\s+\w+\s*\(|\bval\s+\w+(?:\s*:\s*\w+)?',
-            "Ruby": r'\bdef\s+\w+\s*(?:\([^)]*\))?\s*$|\bend\b',
-            "TypeScript": r':\s*[A-Za-z]+(?:<[^>]+>)?\s*(?:=|;|\)|\})',
-            "Swift": r'import\s+(?:Foundation|UIKit|SwiftUI)|@IBOutlet|@IBAction',
-            "Rust": r'fn\s+\w+\s*\([^)]*\)\s*(?:->\s*[^{]+)?\s*\{|impl\s+\w+(?:\s+for\s+\w+)?',
-            "C#": r'using\s+[\w.]+;|namespace\s+[\w.]+',
-            "R": r'<-\s*(?:function|\w+)|library\([\w\.]+\)',
-            "Python": r'def\s+\w+\s*\([^)]*\)\s*:|import\s+[\w\s,]+',
-            "JavaScript": r'function\s+\w+\s*\([^)]*\)|const\s+\w+\s*=',
-            "Java": r'public\s+class\s+\w+|public\s+static\s+void\s+main',
-            "C++": r'#include\s*<[^>]+>|std::\w+',
-            "Julia": r'function\s+\w+\s*\([^)]*\)\s*end|module\s+\w+',
-            "Go": r'package\s+\w+|func\s+\w+\s*\('            
+            # C# distinctive features (to differentiate from Java and other languages)
+            "C#": [
+                (r'using\s+[\w.]+;', 3),                      # Using statement
+                (r'namespace\s+[\w.]+', 3),                   # Namespace
+                (r'Console\.(Write|WriteLine)', 2),           # Console output
+                (r'\bvar\s+\w+\s*=', 3),                     # Var keyword
+                (r'\bawait\s+', 4),                           # Async/await
+                (r'\btask<', 4),                              # Task object
+                (r'\bdynamic\b', 4),                          # Dynamic type
+                (r'\$".*?\{.*?\}.*?"', 5),                   # String interpolation with $
+                (r'\bIEnumerable<', 4),                       # C# collections
+                (r'\bList<', 3),                             # C# collections
+                (r'\bforeach\s*\(', 2),                      # foreach loops
+                (r'\bget;\s*set;', 5),                       # Auto-properties
+                (r'\bselect\s+new\b', 4),                     # LINQ
+                (r'\bwhere\s+\w+\s*=', 4),                    # LINQ
+                (r'<\w+>\s*where\s+\w+\s*:', 5)                # Generic constraints
+            ],
+            
+            # Rust distinctive features (to differentiate from C++)
+            "Rust": [
+                (r'fn\s+\w+\s*\(', 3),                        # Function declaration
+                (r'let\s+mut\s+\w+', 5),                      # Mutable variable
+                (r'impl\s+\w+(?:\s+for\s+\w+)?', 6),           # Implementation
+                (r'use\s+[\w:]+', 2),                         # Use statement
+                (r'pub\s+(?:fn|struct|enum|mod)', 4),          # Public items
+                (r'\bResult<', 5),                           # Result type
+                (r'\bOption<', 5),                           # Option type
+                (r'\bmod\s+\w+', 4),                         # Module declaration
+                (r'&mut\s+\w+', 5),                          # Mutable references
+                (r'trait\s+\w+', 6),                         # Trait definition
+                (r'\bSome\(', 5),                            # Some variant
+                (r'\bNone\b', 5),                            # None variant
+                (r'\bOk\(', 5),                              # Ok variant
+                (r'\bErr\(', 5),                             # Err variant
+                (r'\bcrate::\w+', 5),                        # Crate references
+                (r'\bif\s+let\s+Some', 6)                     # If let for Option
+            ],
+            
+            # Swift distinctive features (to differentiate from Kotlin)
+            "Swift": [
+                (r'import\s+(?:Foundation|UIKit|SwiftUI)', 6), # Swift imports
+                (r'@IBOutlet|@IBAction', 8),                  # iOS annotations
+                (r'guard\s+let', 6),                         # Guard statement
+                (r'\bOptional<', 6),                          # Optional type
+                (r'\bas\?', 5),                               # Type casting
+                (r'\bas!', 5),                                # Forced type casting
+                (r'\?\?', 4),                                 # Nil coalescing
+                (r'extension\s+\w+', 4),                      # Extensions
+                (r'protocol\s+\w+', 4),                       # Protocols
+                (r'convenience\s+init', 6),                    # Convenience init
+                (r'required\s+init', 6),                      # Required init
+                (r'\bUInt\d*\b', 5),                          # Swift integer types
+                (r'\bInt\d*\b', 4),                           # Swift integer types
+                (r'\barray<', 3),                             # Swift arrays
+                (r'\bdictionary<', 3),                        # Swift dictionaries
+                (r'@escaping', 8)                             # Escaping closures
+            ],
+            
+            # TypeScript distinctive features (to differentiate from JavaScript and Python)
+            "TypeScript": [
+                (r':\s*[A-Za-z]+(?:<[^>]+>)?\s*(?:=|;|\)|\})', 5),  # Type annotations
+                (r'interface\s+\w+\s*\{', 6),                 # Interface
+                (r'type\s+\w+\s*=', 6),                       # Type aliases
+                (r'enum\s+\w+', 5),                            # Enums
+                (r'namespace\s+\w+', 6),                     # TypeScript namespaces
+                (r'declare\s+(?:var|let|const|function|class|interface)', 7), # Declarations
+                (r'as\s+(?:string|number|boolean|any)', 6),  # Type assertions
+                (r'\?\s*:', 5),                              # Optional properties
+                (r'\w+\s*\?\s*:', 5),                        # Optional parameters
+                (r'keyof\s+\w+', 7),                         # keyof operator
+                (r'typeof\s+\w+', 6),                        # typeof operator
+                (r'\bReadonly<', 7),                         # Utility types
+                (r'\bPartial<', 7),                          # Utility types
+                (r'\bRequired<', 7),                         # Utility types
+                (r'\bRecord<', 7),                           # Utility types
+                (r'\w+\s*&\s*\w+', 6),                       # Intersection types
+                (r'import\s+type', 8),                       # Import types
+                (r'export\s+type', 8)                        # Export types
+            ],
+            
+            # Keep other language patterns but add more weight to distinctive features
+            "PHP": [(r'<\?php', 10), (r'\$\w+\s*=', 2), (r'function\s+\w+\s*\(.*?\)\s*\{', 2)],
+            "SQL": [(r'(?i)SELECT\s+[\w\*,\s]+\s+FROM', 10), (r'(?i)INSERT\s+INTO', 8), (r'(?i)CREATE\s+TABLE', 8)],
+            "Perl": [(r'\buse\s+[\w:]+\s*;', 6), (r'\bmy\s+(?:\$|@|%)', 8), (r'\bperl\b', 10)],
+            "Lua": [(r'\blocal\s+\w+', 6), (r'\bfunction\s+\w+(?:\w*\.\w+)*\s*\(', 6), (r'\bend\s*$', 4)],
+            "Kotlin": [(r'\bfun\s+\w+\s*\(', 6), (r'\bval\s+\w+(?:\s*:\s*\w+)?', 6), (r'data\s+class', 10)],
+            "Ruby": [(r'\bdef\s+\w+\s*(?:\([^)]*\))?\s*$', 6), (r'\bend\b', 4), (r'\bdo\s*\|[^|]*\|', 6)],
+            "R": [(r'<-\s*(?:function|\w+)', 8), (r'library\([\w\.]+\)', 8), (r'%>%', 10)],
+            "Python": [(r'def\s+\w+\s*\([^)]*\)\s*:', 6), (r'import\s+[\w\s,]+', 4), (r'from\s+[\w.]+\s+import', 6)],
+            "JavaScript": [(r'function\s+\w+\s*\([^)]*\)', 4), (r'const\s+\w+\s*=', 3), (r'let\s+\w+\s*=', 3)],
+            "Java": [(r'public\s+class\s+\w+', 6), (r'public\s+static\s+void\s+main', 8), (r'System\.(out|err)\.', 6)],
+            "C++": [(r'#include\s*<[^>]+>', 6), (r'std::\w+', 8), (r'int\s+main\s*\(', 4)],
+            "Julia": [(r'function\s+\w+\s*\([^)]*\)\s*end', 8), (r'module\s+\w+', 6), (r'using\s+\w+', 4)],
+            "Go": [(r'package\s+\w+', 6), (r'func\s+\w+\s*\(', 4), (r'import\s*\(', 4)]
         }
         
-        for lang in matches.keys():
-            if lang in unique_patterns:
-                pattern = unique_patterns[lang]
-                if re.search(pattern, code):
-                    matches[lang] += 2  # Give higher score for unique patterns
+        # Apply the detailed scoring system
+        for lang, patterns in unique_patterns.items():
+            if lang in matches:
+                for pattern, weight in patterns:
+                    if re.search(pattern, code, re.IGNORECASE):
+                        matches[lang] += weight
         
-        # Additional scoring based on language-specific features
-        if "<?php" in code:
-            matches["PHP"] = matches.get("PHP", 0) + 5
-        if re.search(r'SELECT\s+[\w\*,\s]+\s+FROM', code, re.IGNORECASE):
-            matches["SQL"] = matches.get("SQL", 0) + 5
-        if re.search(r'\bmy\s+\$\w+', code):
-            matches["Perl"] = matches.get("Perl", 0) + 5
-        if re.search(r'\blocal\s+\w+', code):
-            matches["Lua"] = matches.get("Lua", 0) + 5
+        # Additional weighting for core language features
+        # C# vs Java disambiguation
+        if "C#" in matches and "Java" in matches:
+            # C# specific features that are unlikely in Java
+            csharp_specific = [
+                (r'\$"', 8),                  # String interpolation
+                (r'\bvar\b', 6),               # var keyword
+                (r'\basync\b', 6),             # async keyword
+                (r'\bawait\b', 6),             # await keyword
+                (r'\bIEnumerable<', 6),        # C# specific interfaces
+                (r'\bget;\s*set;', 8),         # Auto-properties
+                (r'\bLINQ\b', 8),              # LINQ
+                (r'\busing\s+static', 8)        # using static
+            ]
+            for pattern, weight in csharp_specific:
+                if re.search(pattern, code, re.IGNORECASE):
+                    matches["C#"] += weight
             
-        # Kotlin-specific patterns with high scores
-        kotlin_patterns = [
-            (r'package\s+com\.', 8),  # Package declaration (common in Android)
-            (r'import\s+android\.', 8),  # Android imports
-            (r'import\s+kotlinx\.', 8),  # Kotlinx imports
-            (r'fun\s+main\(\)', 7),  # Main function
-            (r'class\s+\w+\s*:\s*\w+', 6),  # Class with inheritance
-            (r'data\s+class', 8),  # Data class (very Kotlin specific)
-            (r'companion\s+object', 8),  # Companion object (very Kotlin specific)
-            (r'val\s+\w+\s*:\s*\w+', 5),  # Val with type
-            (r'var\s+\w+\s*:\s*\w+', 5),  # Var with type
-            (r'lateinit\s+var', 8),  # Lateinit (very Kotlin specific)
-            (r'override\s+fun', 6),  # Override function
-            (r'when\s*\(', 5),  # When expression
-            (r'suspend\s+fun', 8),  # Coroutines (very Kotlin specific)
-            (r'coroutineScope', 8),  # Coroutines scope
-            (r'viewModel:', 6),  # ViewModel pattern
-            (r'by\s+viewModels', 8),  # Delegation (very Kotlin specific)
-            (r'by\s+lazy', 8),  # Lazy initialization (very Kotlin specific)
-        ]
+            # Java specific features that are unlikely in C#
+            java_specific = [
+                (r'\bimport\s+java\.', 8),       # Java imports
+                (r'\bSystem\.out\.print', 6),   # Java System.out
+                (r'\bpublic\s+static\s+void\s+main', 8), # Java main method
+                (r'\@Override\b', 6),           # Java annotations
+                (r'\bextends\s+\w+\s*\{', 6),   # Java inheritance
+                (r'\bimplements\s+\w+\s*\{', 6)  # Java interface implementation
+            ]
+            for pattern, weight in java_specific:
+                if re.search(pattern, code, re.IGNORECASE):
+                    matches["Java"] += weight
+                    
+        # Rust vs C++ disambiguation
+        if "Rust" in matches and "C++" in matches:
+            # Rust specific features that are unlikely in C++
+            rust_specific = [
+                (r'\bfn\b', 8),                    # fn keyword
+                (r'\blet\b', 8),                   # let keyword
+                (r'\bmut\b', 8),                   # mut keyword
+                (r'\bimpl\b', 8),                  # impl keyword
+                (r'\buse\b', 6),                   # use keyword
+                (r'\bSome\(', 8),                  # Some variant
+                (r'\bNone\b', 8),                  # None variant
+                (r'\bResult<', 8),                 # Result type
+                (r'\bOption<', 8)                  # Option type
+            ]
+            for pattern, weight in rust_specific:
+                if re.search(pattern, code, re.IGNORECASE):
+                    matches["Rust"] += weight
+            
+            # C++ specific features that are unlikely in Rust
+            cpp_specific = [
+                (r'#include', 8),                 # C++ include
+                (r'std::', 6),                     # C++ std namespace
+                (r'\bclass\b', 6),                # class keyword
+                (r'\bpublic:\b', 8),              # public: access specifier
+                (r'\bprivate:\b', 8),             # private: access specifier
+                (r'\bprotected:\b', 8),           # protected: access specifier
+                (r'\btypedef\b', 8),              # typedef keyword
+                (r'\bnew\b', 4),                  # new keyword
+                (r'\bdelete\b', 8)                # delete keyword
+            ]
+            for pattern, weight in cpp_specific:
+                if re.search(pattern, code, re.IGNORECASE):
+                    matches["C++"] += weight
+                    
+        # Swift vs Kotlin disambiguation
+        if "Swift" in matches and "Kotlin" in matches:
+            # Swift specific features that are unlikely in Kotlin
+            swift_specific = [
+                (r'\bimport\s+(?:Foundation|UIKit|SwiftUI)', 10), # Swift imports
+                (r'\bguard\b', 8),                # guard keyword
+                (r'\?\?', 8),                      # Nil coalescing operator
+                (r'\bas\?', 8),                    # Optional downcasting
+                (r'\bas!', 8),                     # Forced downcasting
+                (r'@IBOutlet', 10),                # Interface Builder
+                (r'@IBAction', 10),                # Interface Builder
+                (r'@objc', 10),                    # Objective-C interop
+                (r'\bUIViewController\b', 10)      # UIKit
+            ]
+            for pattern, weight in swift_specific:
+                if re.search(pattern, code, re.IGNORECASE):
+                    matches["Swift"] += weight
+            
+            # Kotlin specific features that are unlikely in Swift
+            kotlin_specific = [
+                (r'\bdata\s+class', 10),            # Data class
+                (r'\bfun\b', 8),                   # fun keyword
+                (r'\bval\b', 6),                   # val keyword
+                (r'\bvar\b', 4),                   # var keyword
+                (r'\bcompanion\s+object', 10),     # Companion object
+                (r'\bwhen\b', 8),                  # when expression
+                (r'\bcoroutine', 10),              # Coroutines
+                (r'\bsuspend\b', 10),              # Suspend functions
+                (r'\blateinit\b', 10),             # Late initialization
+                (r'\bimport\s+(?:kotlin|androidx|android)', 10) # Kotlin imports
+            ]
+            for pattern, weight in kotlin_specific:
+                if re.search(pattern, code, re.IGNORECASE):
+                    matches["Kotlin"] += weight
+                    
+        # TypeScript vs JavaScript disambiguation (and Python confusion)
+        if "TypeScript" in matches and ("JavaScript" in matches or "Python" in matches):
+            # TypeScript specific features that are unlikely in JS or Python
+            ts_specific = [
+                (r':\s*[A-Za-z]+', 8),             # Type annotations
+                (r'\binterface\b', 8),             # interface keyword
+                (r'\btype\b\s+\w+\s*=', 10),       # type aliases
+                (r'\bnamespace\b', 10),            # namespace keyword
+                (r'\benum\b', 8),                  # enum keyword
+                (r'\bas\s+(?:string|number|boolean|any)', 10), # Type assertions
+                (r'\?:\s*', 10),                    # Optional types
+                (r'\bReadonly<', 10),              # Utility types
+                (r'\w+\s*&\s*\w+', 10),            # Intersection types
+                (r'\bimport\s+type', 10),          # Import types
+                (r'\[\w+\s*:\s*\w+\]', 10)         # Typed arrays
+            ]
+            for pattern, weight in ts_specific:
+                if re.search(pattern, code, re.IGNORECASE):
+                    matches["TypeScript"] += weight
+                    # Remove Python if it's a false positive
+                    if "Python" in matches and matches["Python"] < matches["TypeScript"]:
+                        matches.pop("Python", None)
         
-        for pattern, score in kotlin_patterns:
-            if re.search(pattern, code):
-                matches["Kotlin"] = matches.get("Kotlin", 0) + score
-            
         # Return the language with the highest score
         if matches:
             return max(matches.items(), key=lambda x: x[1])[0]
