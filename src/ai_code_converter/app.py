@@ -146,7 +146,7 @@ class CodeConverterApp:
             error_state = gr.State("")
             
             # Header
-            gr.HTML('<div class="header-text">AI CodeXchange</div>')
+            gr.HTML('<div class="header-text">CodeXchange AI</div>')
             
             # Error Message Accordion
             with gr.Accordion("Validation Messages", open=False, elem_classes=["error-accordion"]) as error_accordion:
