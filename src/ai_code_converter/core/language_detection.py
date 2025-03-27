@@ -266,22 +266,57 @@ class LanguageDetector:
         # For TypeScript detection, we need to differentiate between object property definitions (which exist in JS)
         # and type annotations (which are unique to TS)
         
+        # First, check for specific patterns from other languages to avoid false positives
+        
+        # Lua-specific patterns
+        lua_patterns = [
+            r'local\s+\w+\s*=',      # Local variable declarations
+            r'function\s*\([^)]*\)\s*', # Anonymous functions
+            r'require\(["\']\w+["\'](\))',  # Module imports
+            r'end\b',                # End keyword
+            r'\bnil\b',              # nil value
+            r'\bipairs\(',          # ipairs function
+            r'\bpairs\(',          # pairs function
+            r'\s*\.\.\.?\s*'       # String concatenation or varargs
+        ]
+        
+        # PHP-specific patterns
+        php_patterns = [
+            r'<\?php',              # PHP opening tag
+            r'\$\w+',              # PHP variables
+            r'\-\>\w+',            # PHP object access
+            r'public\s+function',  # PHP method declaration
+            r'namespace\s+\w+\\',  # PHP namespace with backslash
+            r'use\s+\w+\\',        # PHP use statements with backslash
+            r'\$this\->'           # PHP $this reference
+        ]
+        
+        # If the code contains clear Lua or PHP indicators, it's not TypeScript
+        is_likely_lua = any(re.search(pattern, code) for pattern in lua_patterns)
+        is_likely_php = any(re.search(pattern, code) for pattern in php_patterns)
+        
+        if is_likely_lua or is_likely_php:
+            return False
+        
         # Check for type annotations in context (not inside object literals)
         type_annotation_patterns = [
             r'function\s+\w+\([^)]*\)\s*:\s*\w+',  # Function return type
+            r'const\s+\w+\s*:\s*\w+',  # Variable with type annotation
+            r'let\s+\w+\s*:\s*\w+',   # Variable with type annotation
             r':\s*(?:string|number|boolean|any|void|null|undefined)\b', # Basic type annotations
-            r':\s*[A-Z][\w]+\b',  # Custom type annotations (type names typically start with capital letter)
-            r':\s*[\w\[\]<>|&]+' # Complex type annotations
+            r':\s*[A-Z][\w]+(?![\w\(])',  # Custom type annotations (type names typically start with capital letter)
+            r':\s*[\w\[\]<>|&]+(?=\s*(?:[,\);=]|$))' # Complex type annotations followed by certain delimiters
         ]
         
         has_type_annotation = any(re.search(pattern, code) for pattern in type_annotation_patterns)
         
-        # Look for object literals in JS to avoid false positives
+        # Look for JavaScript syntax indicators
         js_object_literal = re.search(r'\{\s*\w+\s*:\s*[^:\{]+\s*(?:,|\})', code) is not None
+        contains_js_imports = re.search(r'import\s+[{\w\s,}]+\s+from\s+["\']', code) is not None
         
         # Only return true for TypeScript-specific patterns or if we have type annotations
-        # that don't just look like JS object literals
-        return ts_unique or (has_type_annotation and not (js_object_literal and not ts_unique))
+        # that are likely to be TypeScript and not other languages
+        return ts_unique or (has_type_annotation and (contains_js_imports or js_general) and not (js_object_literal and not ts_unique))
         
     @staticmethod
     def detect_r(code: str) -> bool:
