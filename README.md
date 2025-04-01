@@ -105,8 +105,8 @@ The application provides an intuitive interface with:
 - Documentation options
 - File upload/download capabilities
 
-For a lightweight experience, you can also use our Jupyter notebook version:
-- [codeXchange.ipynb](./codeXchange.ipynb) - Run the converter in a Jupyter environment
+For a lightweight experience:
+- [codeXchange](./codeXchange.ipynb) - Run the converter in a Jupyter environment
 
 ## License
 

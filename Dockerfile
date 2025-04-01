@@ -112,8 +112,16 @@ ENV GOPATH="/go"
 ENV PATH="${GOPATH}/bin:${PATH}"
 
 # Create app user
-RUN useradd -m -s /bin/bash app
-WORKDIR /app
+
+ARG UID=1000
+ARG GID=1000
+
+# Create a group with the specified GID
+# Create a user with the specified UID and GID, home directory, and bash shell
+RUN groupadd --gid $GID app && useradd --uid $UID --gid $GID --create-home --shell /bin/bash app
+
+#RUN useradd -m -s /bin/bash app
+#WORKDIR /app
 
 # Copy project files
 COPY --chown=app:app . .
