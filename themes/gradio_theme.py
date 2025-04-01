@@ -82,10 +82,17 @@ h1, h2, h3, h4, h5, h6, .gr-header {
 }
 
 /* Validation messages section */
-.gr-accordion .gr-panel {
+.gr-accordion.error-accordion .gr-panel {
     background-color: var(--secondary-background) !important;
     color: var(--text) !important;
     border-color: #e74c3c !important; /* Red border */
+    border-width: 1px !important;
+}
+
+.gr-accordion .gr-panel {
+    background-color: var(--secondary-background) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
 }
 
 .gr-accordion-header {

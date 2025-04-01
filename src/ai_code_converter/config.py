@@ -417,9 +417,14 @@ CUSTOM_CSS = """
 
 .error-accordion {
     margin: 10px 0;
-    border: 2px solid #ff4444 !important;
+    border: 1px solid #ff4444 !important;
     border-radius: 4px !important;
-    background-color: var(--secondary-background, #f7f7f7) !important;
+    background-color: var(--secondary-background) !important;
+}
+
+.error-accordion .gr-accordion-header {
+    background-color: rgba(255, 68, 68, 0.1) !important;
+    font-weight: bold !important;
 }
 
 .error-message {

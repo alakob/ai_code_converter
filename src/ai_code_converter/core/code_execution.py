@@ -102,7 +102,7 @@ class CodeExecutor:
                 try:
                     # Log execution environment info
                     logger.info("Creating namespace for execution")
-                    namespace: Dict[str, Any] = {}
+                    namespace: Dict[str, Any] = {"__name__": "__main__"}
                     
                     # Track execution start time
                     exec_start = datetime.now()
