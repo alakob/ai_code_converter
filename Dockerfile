@@ -227,7 +227,16 @@ ENV GOPATH="/go"
 ENV PATH="${GOPATH}/bin:${PATH}"
 
 # Create app user
-RUN useradd -m -s /bin/bash app
+
+# Create app user with customizable UID and GID
+# Define default UID and GID values (can be overridden during build)
+ARG UID=1000
+ARG GID=1000
+
+# Create a group with the specified GID
+# Create a user with the specified UID and GID, home directory, and bash shell
+RUN groupadd --gid $GID app && useradd --uid $UID --gid $GID --create-home --shell /bin/bash app
+
 WORKDIR /app
 
 # Copy virtual environment and application files from builder
