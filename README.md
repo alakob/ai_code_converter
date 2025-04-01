@@ -96,9 +96,17 @@ See [Supported Languages](./docs/languages.md) for detailed information.
 - [Project Structure](./docs/project_structure.md)
 - [Architecture Diagram](./docs/architecture_diagram.md)
 
-## Try CodeXchange AI
+## App Overview & Notebook Version
 
-Access the hosted version at [https://codexchange.ai](https://codexchange.ai)
+The application provides an intuitive interface with:
+- Code editor with syntax highlighting
+- Language selection dropdowns
+- Model and temperature settings
+- Documentation options
+- File upload/download capabilities
+
+For a lightweight experience, you can also use our Jupyter notebook version:
+- [codeXchange.ipynb](./codeXchange.ipynb) - Run the converter in a Jupyter environment
 
 ## License
 
