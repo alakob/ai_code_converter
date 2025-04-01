@@ -7,6 +7,7 @@ import re
 from datetime import datetime
 import time
 import threading
+import traceback
 
 from anthropic import Anthropic, AnthropicError
 import google.generativeai as genai
@@ -473,14 +474,20 @@ class CodeConverterApp:
             outputs=[
                 source_result,  # Code component for output
                 source_download  # File component for download
-            ]
+            ],
+            queue=True,  # Ensure the task is processed in a queue
+            api_name="run_source_code"  # Assign a unique API name for tracing
         )
+        logger.info("Registered click event for 'Run Source' button")
 
         run_converted_btn.click(
             fn=self._run_converted_code_with_validation,
             inputs=[converted_code, target_lang],
-            outputs=converted_result  # Only output string
+            outputs=converted_result,  # Only output string
+            queue=True,
+            api_name="run_converted_code"
         )
+        logger.info("Registered click event for 'Run Converted' button")
         
         # Snippet selection handler
         load_snippet_btn.click(
@@ -769,12 +776,33 @@ class CodeConverterApp:
 
     def _handle_code_execution(self, code: str, language: str) -> tuple[str, gr.update]:
         """Handle code execution and prepare download."""
+        logger.info("="*80)
+        logger.info(f"CODE EXECUTION INITIATED: Button clicked for {language}")
+        logger.info("="*80)
+        
         if not code:
+            logger.warning("No code provided for execution - empty code block")
             return "", gr.update(visible=False)
         
+        logger.info(f"Code length: {len(code)} characters")
+        logger.info(f"Code snippet (first 100 chars): {code[:100].replace(chr(10), '↵')}")
+        
         try:
+            # Log pre-execution state
+            logger.info(f"Starting execution for language: {language}")
+            execution_start = time.time()
+            
             # Execute code and get output and binary
             output, binary = self.code_executor.execute(code, language)
+            
+            # Log execution results
+            execution_time = time.time() - execution_start
+            logger.info(f"Execution completed in {execution_time:.4f} seconds")
+            logger.info(f"Output received - length: {len(output)} characters")
+            if output:
+                logger.info(f"Output snippet (first 100 chars): {output[:100].replace(chr(10), '↵')}")
+            else:
+                logger.warning("Empty output received from code execution")
             
             # Prepare download with compiled binary if available
             if binary and language in ["C++", "Java", "Go"]:
@@ -785,6 +813,7 @@ class CodeConverterApp:
                 else:
                     logger.warning(f"No valid binary data for {language}")
                     
+                logger.info("Preparing download file with binary")
                 temp_file, filename = self.file_handler.prepare_download(
                     code=code,
                     language=language,
@@ -792,32 +821,56 @@ class CodeConverterApp:
                 )
                 
                 if temp_file and filename:
+                    logger.info(f"Download file prepared: {filename}")
                     return (
                         output,  # Return just the output string for Code component
                         gr.update(value=temp_file, visible=True, label=f"Download {language} Code")
                     )
+                else:
+                    logger.warning("Failed to prepare download file")
             
+            logger.info("Returning execution results to UI")
+            logger.info("="*80)
             return output, gr.update(visible=False)
             
         except Exception as e:
-            logger.error(f"Error executing code: {str(e)}", exc_info=True)
+            logger.error(f"Error executing {language} code: {str(e)}", exc_info=True)
+            logger.error(f"Stack trace: {traceback.format_exc()}")
+            logger.info("="*80)
             return f"Error: {str(e)}", gr.update(visible=False)
 
     def _run_converted_code_with_validation(self, code: str, target_lang: str) -> str:
         """Validate and execute converted code."""
-        logger.info(f"Validating converted code for execution")
+        logger.info("="*80)
+        logger.info(f"CONVERTED CODE EXECUTION INITIATED: {target_lang}")
+        logger.info("="*80)
         
         if not code:
+            logger.warning("No code to execute - empty code block")
             return "No code to execute."
+        
+        logger.info(f"Code length: {len(code)} characters")
+        logger.info(f"Code snippet (first 100 chars): {code[:100].replace(chr(10), '↵')}")
         
         is_valid, error_msg = self.language_detector.validate_language(code, target_lang)
         if not is_valid:
             logger.error(f"Language validation failed: {error_msg}")
+            logger.info("="*80)
             return f"⚠️ Error: Cannot execute code.\n{error_msg}"
         
         logger.info("Language validation passed, proceeding with execution")
+        execution_start = time.time()
+        
         # Only return the output string, ignore binary
         output, _ = self.code_executor.execute(code, target_lang)
+        
+        execution_time = time.time() - execution_start
+        logger.info(f"Execution completed in {execution_time:.4f} seconds")
+        logger.info(f"Output received - length: {len(output)} characters")
+        if output:
+            logger.info(f"Output snippet (first 100 chars): {output[:100].replace(chr(10), '↵')}")
+        
+        logger.info("="*80)
         return output
 
     def _handle_source_code_change(

@@ -7,7 +7,9 @@ import os
 import re
 import subprocess
 import tempfile
-from typing import Optional
+import traceback
+import sys
+from typing import Optional, Dict, Any
 from datetime import datetime
 from src.ai_code_converter.utils.logger import setup_logger
 from pathlib import Path
@@ -40,6 +42,7 @@ class CodeExecutor:
             "C#": self.execute_csharp,
             "TypeScript": self.execute_typescript
         }
+        logger.info(f"Supported languages: {', '.join(self.executors.keys())}")
 
     def execute(self, code: str, language: str) -> tuple[str, Optional[bytes]]:
         """Execute code with detailed logging."""
@@ -47,6 +50,7 @@ class CodeExecutor:
         logger.info(f"STARTING CODE EXECUTION: {language}")
         logger.info("="*50)
         logger.info(f"Code length: {len(code)} characters")
+        logger.debug(f"Full code to execute:\n{code}")
         
         if not code:
             logger.warning("No code provided for execution")
@@ -55,10 +59,11 @@ class CodeExecutor:
         executor = self.executors.get(language)
         if not executor:
             logger.error(f"No executor found for language: {language}")
+            logger.info(f"Available executors: {', '.join(self.executors.keys())}")
             return f"Execution not implemented for {language}", None
         
         try:
-            logger.info(f"Executing {language} code")
+            logger.info(f"Found executor for {language}, initiating execution")
             start_time = datetime.now()
             
             output, binary = executor(code)
@@ -68,39 +73,101 @@ class CodeExecutor:
             logger.info(f"Output length: {len(output)} characters")
             if binary:
                 logger.info(f"Binary size: {len(binary)} bytes")
+            else:
+                logger.info("No binary output produced")
+                
+            logger.debug(f"Full execution output:\n{output}")
             logger.info("="*50)
             
             return f"{output}\nExecution completed in {execution_time:.2f} seconds", binary
             
         except Exception as e:
             logger.error(f"Error executing {language} code", exc_info=True)
+            logger.error(f"Exception details: {type(e).__name__}: {str(e)}")
+            logger.error(f"Stack trace: {traceback.format_exc()}")
             logger.info("="*50)
             return f"Error: {str(e)}", None
 
     def execute_python(self, code: str) -> tuple[str, Optional[bytes]]:
         """Execute Python code in a safe environment."""
+        logger.info("Python execution started")
+        logger.info(f"Python version: {sys.version}")
+        logger.debug(f"Executing Python code:\n{code}")
+        
         output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            try:
-                # Create a shared namespace for globals and locals
-                namespace = {}
-                
-                # Execute the code with shared namespace
-                exec(code, namespace, namespace)
-                
-                # Get any stored output
-                execution_output = output.getvalue()
-                
-                # If there's a result variable, append it to output
-                if '_result' in namespace:
-                    execution_output += str(namespace['_result'])
+        stderr_capture = io.StringIO()
+        
+        try:
+            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(stderr_capture):
+                try:
+                    # Log execution environment info
+                    logger.info("Creating namespace for execution")
+                    namespace: Dict[str, Any] = {}
                     
-                return execution_output, None
-            except Exception as e:
-                logger.error(f"Python execution error: {str(e)}", exc_info=True)
-                return f"Error: {str(e)}", None
-            finally:
-                output.close()
+                    # Track execution start time
+                    exec_start = datetime.now()
+                    logger.info("Executing code in namespace")
+                    
+                    # Execute the code with shared namespace
+                    exec(code, namespace, namespace)
+                    
+                    # Track execution end time
+                    exec_time = (datetime.now() - exec_start).total_seconds()
+                    logger.info(f"Code executed successfully in {exec_time:.4f} seconds")
+                    
+                    # Get any stored output
+                    execution_output = output.getvalue()
+                    stderr_output = stderr_capture.getvalue()
+                    
+                    # Log namespace variables for debugging
+                    logger.debug(f"Namespace variables: {', '.join(k for k in namespace.keys() if not k.startswith('__'))}")
+                    
+                    # If there's a result variable, append it to output
+                    if '_result' in namespace:
+                        logger.info("Found '_result' variable in namespace")
+                        execution_output += str(namespace['_result'])
+                    
+                    # Log output details
+                    if execution_output:
+                        logger.info(f"Captured stdout output: {len(execution_output)} chars")
+                        logger.debug(f"Output: {execution_output}")
+                    else:
+                        logger.info("No stdout output produced")
+                        
+                    if stderr_output:
+                        logger.warning(f"Captured stderr output: {stderr_output}")
+                    
+                    # Log execution completion
+                    logger.info("Python execution completed successfully")
+                    return execution_output, None
+                    
+                except Exception as e:
+                    error_type = type(e).__name__
+                    error_msg = str(e)
+                    tb = traceback.format_exc()
+                    logger.error(f"Python execution error: {error_type}: {error_msg}")
+                    logger.error(f"Traceback: {tb}")
+                    
+                    # Get any output before the exception
+                    partial_output = output.getvalue()
+                    stderr_output = stderr_capture.getvalue()
+                    
+                    if partial_output:
+                        logger.info(f"Partial output before exception: {partial_output}")
+                    
+                    if stderr_output:
+                        logger.error(f"Stderr output: {stderr_output}")
+                        
+                    return f"Error: {error_type}: {error_msg}\n\n{tb}", None
+            
+        except Exception as e:
+            # This catches errors in the redirect_stdout/stderr context manager itself
+            logger.critical(f"Critical error in Python execution system: {str(e)}", exc_info=True)
+            return f"System Error: {str(e)}", None
+        finally:
+            output.close()
+            stderr_capture.close()
+            logger.info("Python execution resources cleaned up")
 
     def execute_javascript(self, code: str) -> tuple[str, Optional[bytes]]:
         """Execute JavaScript code using Node.js."""
