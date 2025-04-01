@@ -243,7 +243,8 @@ ENV PATH="/app/.venv/bin:$PATH" \
 
 # Create necessary directories with correct permissions
 RUN mkdir -p /app/logs /app/downloads \
-    && chown -R app:app /app/logs /app/downloads
+    && chown -R app:app /app/logs /app/downloads \
+    && chmod -R 777 /app/logs /app/downloads
 
 # Verify installations with comprehensive platform information
 RUN echo "======= PLATFORM & LANGUAGE VERIFICATION =======" && \
