@@ -129,8 +129,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 FROM ubuntu:22.04
 
 # Add metadata about runtime environment
-LABEL org.opencontainers.image.title="AI CodeXchange"
-LABEL org.opencontainers.image.description="Multi-platform AI CodeXchange application"
+LABEL org.opencontainers.image.title="CodeXchange AI"
+LABEL org.opencontainers.image.description="Multi-platform CodeXchange AI application"
 LABEL org.opencontainers.image.version="1.0"
 
 # Create platform-specific label at build time
