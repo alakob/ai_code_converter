@@ -419,7 +419,7 @@ CUSTOM_CSS = """
     margin: 10px 0;
     border: 2px solid #ff4444 !important;
     border-radius: 4px !important;
-    background-color: #ffffff !important;
+    background-color: var(--secondary-background, #f7f7f7) !important;
 }
 
 .error-message {
